@@ -18,6 +18,7 @@ final class AppSettings: ObservableObject {
         static let menuBar = "showMenuBarIcon"
         static let dock = "showInDock"
         static let login = "launchAtLogin"
+        static let autoUpdate = "autoCheckUpdates"
     }
 
     private func persistMenuSettings() {
@@ -58,6 +59,12 @@ final class AppSettings: ObservableObject {
             applyLoginItem()
         }
     }
+    /// 启动时自动检查更新。
+    @Published var autoCheckUpdates: Bool = true {
+        didSet {
+            defaults.set(autoCheckUpdates, forKey: Key.autoUpdate)
+        }
+    }
 
     // MARK: - 右键菜单开关（通过 SharedStore 与扩展共享）
 
@@ -89,6 +96,7 @@ final class AppSettings: ObservableObject {
         showMenuBarIcon = (defaults.object(forKey: Key.menuBar) as? Bool) ?? true
         showInDock = (defaults.object(forKey: Key.dock) as? Bool) ?? true
         launchAtLogin = (defaults.object(forKey: Key.login) as? Bool) ?? false
+        autoCheckUpdates = (defaults.object(forKey: Key.autoUpdate) as? Bool) ?? true
 
         let menuSettings = SharedStore.loadMenuSettings()
         showCopyAbsolutePath = menuSettings.showCopyAbsolutePath

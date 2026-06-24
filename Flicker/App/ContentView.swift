@@ -10,7 +10,6 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var store: AppEntryStore
     @State private var selectedItem: NavigationItem = .openWith
-    @State private var showingAbout = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -31,19 +30,6 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .sheet(isPresented: $showingAbout) {
-            AboutView()
-        }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showingAbout = true
-                } label: {
-                    Label("关于", systemImage: "info.circle")
-                }
-                .help("关于 Flicker")
-            }
-        }
     }
 }
 
