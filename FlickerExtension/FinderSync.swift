@@ -21,15 +21,8 @@ final class FinderSync: FIFinderSync {
 
     private static func defaultWatchedDirectories() -> Set<URL> {
         let fm = FileManager.default
-        let home = fm.homeDirectoryForCurrentUser
         let urls: Set<URL> = [
-            home,
-            home.appendingPathComponent("Desktop", isDirectory: true),
-            home.appendingPathComponent("Documents", isDirectory: true),
-            home.appendingPathComponent("Downloads", isDirectory: true),
-            home.appendingPathComponent("Pictures", isDirectory: true),
-            home.appendingPathComponent("Movies", isDirectory: true),
-            home.appendingPathComponent("Music", isDirectory: true),
+            URL(fileURLWithPath: "/Users", isDirectory: true),
             URL(fileURLWithPath: "/Volumes", isDirectory: true)
         ]
         return urls.filter { fm.fileExists(atPath: $0.path) }
@@ -47,12 +40,12 @@ final class FinderSync: FIFinderSync {
             if let targetURL = FIFinderSyncController.default().targetedURL() {
                 addNewFileMenu(to: menu, directory: targetURL.path)
             }
-            return menu
+            return wrapMenu(menu)
         }
 
         guard menuKind == .contextualMenuForItems || menuKind == .contextualMenuForSidebar,
               let urls = FIFinderSyncController.default().selectedItemURLs(), !urls.isEmpty else {
-            return menu
+            return wrapMenu(menu)
         }
         let target = urls[0]
 
@@ -94,13 +87,27 @@ final class FinderSync: FIFinderSync {
 
         menu.addItem(withTitle: "授权写入", action: #selector(grantWritePermission(_:)), keyEquivalent: "")
 
-        return menu
+        return wrapMenu(menu)
+    }
+
+    private func wrapMenu(_ submenu: NSMenu) -> NSMenu {
+        Self.debugLog("return menu items=\(submenu.items.map(\.title).joined(separator: ","))")
+        let root = NSMenu(title: "Codex RightClick")
+        guard !submenu.items.isEmpty else { return root }
+        let item = NSMenuItem(title: "Codex RightClick", action: nil, keyEquivalent: "")
+        item.image = NSImage(systemSymbolName: "contextualmenu.and.cursorarrow", accessibilityDescription: nil)
+        item.submenu = submenu
+        root.addItem(item)
+        return root
     }
 
     private static func debugLog(_ message: String) {
         let line = "[\(Date())] \(message)\n"
-        let url = URL(fileURLWithPath: "/tmp/codex-rightclick-findersync.log")
+        let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
+            ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        let url = base.appendingPathComponent("codex-rightclick-findersync.log")
         guard let data = line.data(using: .utf8) else { return }
+        try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         if FileManager.default.fileExists(atPath: url.path),
            let handle = try? FileHandle(forWritingTo: url) {
             defer { try? handle.close() }

@@ -45,7 +45,6 @@ swiftc -emit-executable -module-name CodexRightClick \
   Flicker/App/AppSettings.swift \
   Flicker/App/SidebarView.swift \
   Flicker/App/AppMenuBar.swift \
-  Flicker/App/ServiceProvider.swift \
   Flicker/App/URLOpener.swift \
   Flicker/App/AppEntryEditor.swift \
   Flicker/App/AppEntryStore.swift \
@@ -83,86 +82,6 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
       <key>CFBundleTypeRole</key><string>Viewer</string>
       <key>CFBundleURLName</key><string>local.codex.rightclick</string>
       <key>CFBundleURLSchemes</key><array><string>codexrightclick</string></array>
-    </dict>
-  </array>
-  <key>NSServices</key>
-  <array>
-    <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>Codex: 复制路径</string></dict>
-      <key>NSMessage</key><string>handleCodexService</string>
-      <key>NSPortName</key><string>Codex RightClick</string>
-      <key>NSSendTypes</key><array><string>NSFilenamesPboardType</string></array>
-      <key>NSUserData</key><string>copyPath</string>
-    </dict>
-    <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>Codex: 用 Cursor 打开</string></dict>
-      <key>NSMessage</key><string>handleCodexService</string>
-      <key>NSPortName</key><string>Codex RightClick</string>
-      <key>NSSendTypes</key><array><string>NSFilenamesPboardType</string></array>
-      <key>NSUserData</key><string>openCursor</string>
-    </dict>
-    <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>Codex: 用 GitHub Desktop 打开</string></dict>
-      <key>NSMessage</key><string>handleCodexService</string>
-      <key>NSPortName</key><string>Codex RightClick</string>
-      <key>NSSendTypes</key><array><string>NSFilenamesPboardType</string></array>
-      <key>NSUserData</key><string>openGitHubDesktop</string>
-    </dict>
-    <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>Codex: 用 Ghostty 打开</string></dict>
-      <key>NSMessage</key><string>handleCodexService</string>
-      <key>NSPortName</key><string>Codex RightClick</string>
-      <key>NSSendTypes</key><array><string>NSFilenamesPboardType</string></array>
-      <key>NSUserData</key><string>openGhostty</string>
-    </dict>
-    <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>Codex: 用 Codex 打开</string></dict>
-      <key>NSMessage</key><string>handleCodexService</string>
-      <key>NSPortName</key><string>Codex RightClick</string>
-      <key>NSSendTypes</key><array><string>NSFilenamesPboardType</string></array>
-      <key>NSUserData</key><string>openCodex</string>
-    </dict>
-    <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>Codex: 新建 TXT</string></dict>
-      <key>NSMessage</key><string>handleCodexService</string>
-      <key>NSPortName</key><string>Codex RightClick</string>
-      <key>NSSendTypes</key><array><string>NSFilenamesPboardType</string></array>
-      <key>NSUserData</key><string>newTxt</string>
-    </dict>
-    <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>Codex: 新建 Markdown</string></dict>
-      <key>NSMessage</key><string>handleCodexService</string>
-      <key>NSPortName</key><string>Codex RightClick</string>
-      <key>NSSendTypes</key><array><string>NSFilenamesPboardType</string></array>
-      <key>NSUserData</key><string>newMarkdown</string>
-    </dict>
-    <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>Codex: 新建 Word</string></dict>
-      <key>NSMessage</key><string>handleCodexService</string>
-      <key>NSPortName</key><string>Codex RightClick</string>
-      <key>NSSendTypes</key><array><string>NSFilenamesPboardType</string></array>
-      <key>NSUserData</key><string>newWord</string>
-    </dict>
-    <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>Codex: 新建 Excel</string></dict>
-      <key>NSMessage</key><string>handleCodexService</string>
-      <key>NSPortName</key><string>Codex RightClick</string>
-      <key>NSSendTypes</key><array><string>NSFilenamesPboardType</string></array>
-      <key>NSUserData</key><string>newExcel</string>
-    </dict>
-    <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>Codex: 新建 PPT</string></dict>
-      <key>NSMessage</key><string>handleCodexService</string>
-      <key>NSPortName</key><string>Codex RightClick</string>
-      <key>NSSendTypes</key><array><string>NSFilenamesPboardType</string></array>
-      <key>NSUserData</key><string>newPPT</string>
-    </dict>
-    <dict>
-      <key>NSMenuItem</key><dict><key>default</key><string>Codex: 授权写入</string></dict>
-      <key>NSMessage</key><string>handleCodexService</string>
-      <key>NSPortName</key><string>Codex RightClick</string>
-      <key>NSSendTypes</key><array><string>NSFilenamesPboardType</string></array>
-      <key>NSUserData</key><string>grantWrite</string>
     </dict>
   </array>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
