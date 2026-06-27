@@ -171,6 +171,7 @@ final class FinderSync: FIFinderSync {
     private static func appIconName(for fileExtension: String) -> String? {
         switch fileExtension.lowercased() {
         case "txt": return "TextEdit"
+        case "md": return "Markdown"
         case "docx": return "OfficeWord"
         case "xlsx": return "OfficeExcel"
         case "pptx": return "OfficePowerPoint"
