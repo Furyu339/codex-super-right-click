@@ -28,13 +28,17 @@ struct FlickerApp: App {
                     AppActions.shared.openSettings = { [self] in
                         openSettingsEnv()
                     }
-                }
-                .onOpenURL { url in
-                    URLOpener.handle(url)
+                    if AppDelegate.launchedByURL {
+                        AppDelegate.hideURLLaunchWindows()
+                        DispatchQueue.main.async {
+                            AppDelegate.hideURLLaunchWindows()
+                        }
+                    }
                 }
         }
         .windowToolbarStyle(.unified)
         .defaultSize(width: 720, height: 520)
+        .handlesExternalEvents(matching: [])
 
         Settings {
             SettingsView()

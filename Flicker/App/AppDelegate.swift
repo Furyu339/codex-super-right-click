@@ -13,13 +13,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// 仅在主线程读写。
     nonisolated(unsafe) static var launchedByURL = false
 
+    @MainActor
+    static func markLaunchedByURL() {
+        launchedByURL = true
+        NSApp.setActivationPolicy(.accessory)
+    }
+
+    @MainActor
+    static func hideURLLaunchWindows() {
+        NSApp.windows.forEach { $0.orderOut(nil) }
+        NSApp.hide(nil)
+    }
+
     func applicationWillFinishLaunching(_ notification: Notification) {
         // 通过 URL 启动时，系统会带上 kAEGetURL Apple Event，direct object 即 URL 字符串。
         let event = NSAppleEventManager.shared().currentAppleEvent
         if let event,
            let url = event.paramDescriptor(forKeyword: keyDirectObject)?.stringValue,
            url.lowercased().hasPrefix("\(URLOpener.scheme)://") {
-            Self.launchedByURL = true
+            Self.markLaunchedByURL()
         }
         if Self.launchedByURL {
             // 扩展拉起时保持静默：不抢焦点、不显窗口。
@@ -30,7 +42,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         if Self.launchedByURL {
             // 静默运行：隐藏窗口，不应用界面设置，仅同步登录项。
-            NSApp.windows.forEach { $0.orderOut(nil) }
+            Self.hideURLLaunchWindows()
+            DispatchQueue.main.async {
+                Self.hideURLLaunchWindows()
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                Self.hideURLLaunchWindows()
+            }
             AppSettings.shared.applyLoginItem()
         } else {
             AppSettings.shared.applyAll()
@@ -50,7 +68,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @MainActor @objc func showMainWindow() {
+        Self.launchedByURL = false
         AppActions.shared.openMainWindow?()
+        AppSettings.shared.applyAll()
         NSApp.activate(ignoringOtherApps: true)
     }
     
@@ -59,6 +79,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func application(_ application: NSApplication, open urls: [URL]) {
         Log.debug("application open urls: \(urls)")
         for url in urls {
+            if url.scheme?.lowercased() == URLOpener.scheme {
+                Self.markLaunchedByURL()
+            }
             URLOpener.handle(url)
         }
     }
