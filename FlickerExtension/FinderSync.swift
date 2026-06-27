@@ -324,18 +324,10 @@ final class FinderSync: FIFinderSync {
 
     @objc private func grantWritePermission(_ sender: NSMenuItem) {
         guard let urls = FIFinderSyncController.default().selectedItemURLs(), !urls.isEmpty else { return }
-        for target in urls {
-            grantUserWritePermission(at: target)
-        }
-    }
-
-    private func grantUserWritePermission(at url: URL) {
-        let fm = FileManager.default
-        guard let attrs = try? fm.attributesOfItem(atPath: url.path),
-              let permissions = attrs[.posixPermissions] as? NSNumber else { return }
-        let current = permissions.intValue
-        let updated = current | 0o200
-        _ = chmod(url.path, mode_t(updated))
+        guard var comps = URLComponents(string: "\(urlScheme)://grantwrite") else { return }
+        comps.queryItems = urls.map { URLQueryItem(name: "target", value: $0.path) }
+        guard let url = comps.url else { return }
+        NSWorkspace.shared.open(url)
     }
 
     // MARK: - Helpers

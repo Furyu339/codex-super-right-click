@@ -26,6 +26,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
+        NSAppleEventManager.shared().setEventHandler(
+            self,
+            andSelector: #selector(handleGetURLEvent(_:withReplyEvent:)),
+            forEventClass: AEEventClass(kInternetEventClass),
+            andEventID: AEEventID(kAEGetURL)
+        )
+
         // 通过 URL 启动时，系统会带上 kAEGetURL Apple Event，direct object 即 URL 字符串。
         let event = NSAppleEventManager.shared().currentAppleEvent
         if let event,
@@ -84,5 +91,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             URLOpener.handle(url)
         }
+    }
+
+    @MainActor @objc private func handleGetURLEvent(_ event: NSAppleEventDescriptor, withReplyEvent replyEvent: NSAppleEventDescriptor) {
+        guard let urlString = event.paramDescriptor(forKeyword: keyDirectObject)?.stringValue,
+              let url = URL(string: urlString) else {
+            return
+        }
+        if url.scheme?.lowercased() == URLOpener.scheme {
+            Self.markLaunchedByURL()
+        }
+        URLOpener.handle(url)
     }
 }

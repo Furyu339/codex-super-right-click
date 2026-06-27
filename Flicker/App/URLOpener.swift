@@ -15,7 +15,7 @@ import AppKit
 enum URLOpener {
     static let scheme = "codexrightclick"
 
-    /// 处理 `codexrightclick://open`、`codexrightclick://newfile` 和 `codexrightclick://extract`。
+    /// 处理 `codexrightclick://open`、`codexrightclick://newfile`、`codexrightclick://extract` 和 `codexrightclick://grantwrite`。
     static func handle(_ url: URL) {
         Log.debug("URLOpener.handle called with url: \(url)")
         guard url.scheme?.lowercased() == scheme else {
@@ -36,6 +36,8 @@ enum URLOpener {
             handleNewFile(comps)
         case "extract":
             handleExtract(comps)
+        case "grantwrite":
+            handleGrantWrite(comps)
         default:
             Log.debug("unknown host: \(comps.host ?? "nil")")
             return
@@ -284,6 +286,46 @@ enum URLOpener {
             }
         }
         return archive.deletingPathExtension().lastPathComponent
+    }
+
+    /// 处理 `codexrightclick://grantwrite?target=<路径>`。
+    private static func handleGrantWrite(_ comps: URLComponents) {
+        let targets = comps.queryItems?
+            .filter { $0.name == "target" }
+            .compactMap(\.value)
+            .map { URL(fileURLWithPath: $0) } ?? []
+
+        guard !targets.isEmpty else {
+            Log.error("grantwrite: missing target")
+            return
+        }
+
+        for target in targets {
+            grantUserWritePermission(at: target)
+        }
+        hideApp()
+    }
+
+    private static func grantUserWritePermission(at url: URL) {
+        let path = url.path
+        let fm = FileManager.default
+        do {
+            let attrs = try fm.attributesOfItem(atPath: path)
+            guard let permissions = attrs[.posixPermissions] as? NSNumber else {
+                Log.error("grantwrite: missing posix permissions: \(path)")
+                return
+            }
+
+            let current = permissions.intValue
+            let updated = current | 0o200
+            guard chmod(path, mode_t(updated)) == 0 else {
+                Log.error("grantwrite: chmod failed errno=\(errno), path=\(path)")
+                return
+            }
+            Log.debug("grantwrite: chmod \(String(current, radix: 8)) -> \(String(updated, radix: 8)), path=\(path)")
+        } catch {
+            Log.error("grantwrite: read attributes failed: \(error.localizedDescription), path=\(path)")
+        }
     }
 
     private static func sevenZipExecutableURL() -> URL? {
