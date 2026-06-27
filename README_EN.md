@@ -3,30 +3,12 @@
 **[中文](README.md)** | English
 
 <p align="center">
-  <img src="screenshots/app-logo.png" alt="Flicker" width="256" />
-</p>
-
-<p align="center">
   <a href="https://www.apple.com/macos/"><img src="https://img.shields.io/badge/macOS-14%2B-blue" alt="macOS 14+" /></a>
   <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-6.0-orange" alt="Swift 6.0" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT" /></a>
 </p>
 
 A minimalist macOS Finder right-click menu extension — open files and folders with your pre-configured apps instantly.
-
-## Screenshots
-
-<p align="center">
-  <img src="screenshots/image1.png" alt="Configuration UI" width="480" />
-  <br/>
-  <em>App configuration — set file extensions for each app</em>
-</p>
-
-<p align="center">
-  <img src="screenshots/image2.png" alt="Finder context menu" width="480" />
-  <br/>
-  <em>Finder context menu — one-click open & path copying</em>
-</p>
 
 ## Features
 

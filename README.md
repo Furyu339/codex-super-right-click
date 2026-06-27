@@ -3,10 +3,6 @@
 基于 Flicker 改造的本机 Finder 右键菜单工具。
 
 <p align="center">
-  <img src="screenshots/app-logo.png" alt="Flicker" width="256" />
-</p>
-
-<p align="center">
   <a href="https://www.apple.com/macos/"><img src="https://img.shields.io/badge/macOS-14%2B-blue" alt="macOS 14+" /></a>
   <a href="https://swift.org"><img src="https://img.shields.io/badge/Swift-6.0-orange" alt="Swift 6.0" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT" /></a>
