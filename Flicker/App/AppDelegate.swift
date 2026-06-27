@@ -35,6 +35,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             AppSettings.shared.applyAll()
         }
+        NSApp.servicesProvider = ServiceProvider.shared
+        NSUpdateDynamicServices()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

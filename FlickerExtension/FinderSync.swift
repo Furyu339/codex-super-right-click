@@ -9,13 +9,14 @@ import Cocoa
 import Darwin
 import FinderSync
 
-@objc(FinderSync)
 final class FinderSync: FIFinderSync {
     private let urlScheme = "codexrightclick"
 
     override init() {
         super.init()
-        FIFinderSyncController.default().directoryURLs = Self.defaultWatchedDirectories()
+        let watchedDirectories = Self.defaultWatchedDirectories()
+        FIFinderSyncController.default().directoryURLs = watchedDirectories
+        Self.debugLog("init watched=\(watchedDirectories.map(\.path).sorted().joined(separator: ","))")
     }
 
     private static func defaultWatchedDirectories() -> Set<URL> {
@@ -38,6 +39,7 @@ final class FinderSync: FIFinderSync {
 
     override func menu(for menuKind: FIMenuKind) -> NSMenu {
         let menu = NSMenu(title: "Codex RightClick")
+        Self.debugLog("menu kind=\(menuKind.rawValue) target=\(FIFinderSyncController.default().targetedURL()?.path ?? "nil") selected=\(FIFinderSyncController.default().selectedItemURLs()?.map(\.path).joined(separator: ",") ?? "nil")")
         
         // 处理空白区域右键（容器菜单）
         if menuKind == .contextualMenuForContainer {
@@ -93,6 +95,20 @@ final class FinderSync: FIFinderSync {
         menu.addItem(withTitle: "授权写入", action: #selector(grantWritePermission(_:)), keyEquivalent: "")
 
         return menu
+    }
+
+    private static func debugLog(_ message: String) {
+        let line = "[\(Date())] \(message)\n"
+        let url = URL(fileURLWithPath: "/tmp/codex-rightclick-findersync.log")
+        guard let data = line.data(using: .utf8) else { return }
+        if FileManager.default.fileExists(atPath: url.path),
+           let handle = try? FileHandle(forWritingTo: url) {
+            defer { try? handle.close() }
+            _ = try? handle.seekToEnd()
+            try? handle.write(contentsOf: data)
+        } else {
+            try? data.write(to: url)
+        }
     }
     
     /// 添加新建文件子菜单到指定菜单。
