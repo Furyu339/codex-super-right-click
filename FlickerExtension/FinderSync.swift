@@ -50,6 +50,10 @@ final class FinderSync: FIFinderSync {
         if menuKind == .contextualMenuForContainer {
             // 获取当前目录
             if let targetURL = FIFinderSyncController.default().targetedURL() {
+                let menuSettings = SharedStore.loadMenuSettings()
+                if menuSettings.showCopyAbsolutePath {
+                    addCopyPathMenuItem(to: menu, path: targetURL.path)
+                }
                 addNewFileMenu(to: menu, directory: targetURL.path)
             }
             return menu
@@ -128,6 +132,13 @@ final class FinderSync: FIFinderSync {
 
     private static func isArchiveURL(_ url: URL) -> Bool {
         archiveExtensions.contains(url.pathExtension.lowercased())
+    }
+
+    private func addCopyPathMenuItem(to menu: NSMenu, path: String) {
+        let item = NSMenuItem(title: "复制路径", action: #selector(copyAbsolutePath(_:)), keyEquivalent: "")
+        item.target = self
+        item.representedObject = path
+        menu.addItem(item)
     }
     
     /// 添加新建文件子菜单到指定菜单。
@@ -220,6 +231,11 @@ final class FinderSync: FIFinderSync {
     }
 
     @objc private func copyAbsolutePath(_ sender: NSMenuItem) {
+        if let path = sender.representedObject as? String, !path.isEmpty {
+            copyToPasteboard(path)
+            return
+        }
+
         guard let urls = FIFinderSyncController.default().selectedItemURLs(), !urls.isEmpty else { return }
         let paths = urls.map(\.path).joined(separator: "\n")
         copyToPasteboard(paths)
