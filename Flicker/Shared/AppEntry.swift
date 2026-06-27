@@ -62,3 +62,32 @@ struct AppEntry: Codable, Identifiable, Equatable, Hashable {
         return allowedExtensions.contains(ext)
     }
 }
+
+extension AppEntry {
+    static let codexDefaults: [AppEntry] = [
+        AppEntry(
+            id: "cursor",
+            name: "Open in Cursor",
+            appPath: "/Applications/Cursor.app",
+            foldersOnly: false
+        ),
+        AppEntry(
+            id: "github-desktop",
+            name: "Open in GitHub Desktop",
+            appPath: "/Applications/GitHub Desktop.app",
+            foldersOnly: false
+        ),
+        AppEntry(
+            id: "ghostty",
+            name: "Open in Ghostty",
+            appPath: "/Applications/Ghostty.app",
+            foldersOnly: true
+        ),
+        AppEntry(
+            id: "codex",
+            name: "Open in Codex",
+            appPath: "/Applications/Codex.app",
+            foldersOnly: false
+        )
+    ]
+}

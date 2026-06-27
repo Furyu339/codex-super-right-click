@@ -50,7 +50,7 @@ struct AboutView: View {
 
     private var infoSection: some View {
         VStack(spacing: 6) {
-            Text("Flicker")
+            Text("Codex RightClick")
                 .font(.system(size: 24, weight: .semibold))
             Text("版本 \(appVersion) (\(buildNumber))")
                 .font(.subheadline)
@@ -64,23 +64,17 @@ struct AboutView: View {
     }
 
     private var linksSection: some View {
-        VStack(spacing: 10) {
-            Link(destination: URL(string: "https://github.com/yananw-pub/Flicker")!) {
-                Label("GitHub 仓库", systemImage: "link")
-            }
-            Link(destination: URL(string: "https://github.com/yananw-pub/Flicker/issues")!) {
-                Label("反馈问题", systemImage: "exclamationmark.bubble")
-            }
-        }
-        .font(.subheadline)
+        Text("本机自用右键工具")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
     }
 
     private var copyrightSection: some View {
         VStack(spacing: 4) {
-            Text("Copyright © 2026 wangyanan")
+            Text("本地维护版")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
-            Text("MIT License")
+            Text("Based on Flicker, MIT License")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
@@ -93,8 +87,4 @@ struct AboutView: View {
         .keyboardShortcut(.defaultAction)
         .buttonStyle(.borderedProminent)
     }
-}
-
-#Preview {
-    AboutView()
 }

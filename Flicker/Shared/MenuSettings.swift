@@ -20,8 +20,8 @@ struct MenuSettings: Codable {
     /// 默认全开。
     static let defaults = MenuSettings(
         showCopyAbsolutePath: true,
-        showCopyRelativePath: true,
-        showCopyFileName: true
+        showCopyRelativePath: false,
+        showCopyFileName: false
     )
 
     // 兼容旧配置：缺少字段时用默认值。
@@ -62,12 +62,11 @@ struct NewFileType: Codable, Identifiable, Hashable {
     
     /// 默认支持的文件类型
     static let defaults: [NewFileType] = [
-        NewFileType(id: "txt", name: "文本文档", ext: "txt", icon: "doc.text"),
-        NewFileType(id: "conf", name: "配置文件", ext: "conf", icon: "gearshape"),
+        NewFileType(id: "txt", name: "TXT", ext: "txt", icon: "doc.text"),
         NewFileType(id: "md", name: "Markdown", ext: "md", icon: "doc.richtext"),
-        NewFileType(id: "toml", name: "TOML", ext: "toml", icon: "doc.plaintext"),
-        NewFileType(id: "yaml", name: "YAML", ext: "yaml", icon: "doc.plaintext"),
-        NewFileType(id: "yml", name: "YML", ext: "yml", icon: "doc.plaintext")
+        NewFileType(id: "docx", name: "Word", ext: "docx", icon: "doc.text"),
+        NewFileType(id: "xlsx", name: "Excel", ext: "xlsx", icon: "tablecells"),
+        NewFileType(id: "pptx", name: "PPT", ext: "pptx", icon: "rectangle.on.rectangle")
     ]
 }
 
@@ -82,16 +81,17 @@ struct NewFileSettings: Codable {
     
     /// 默认设置：启用txt和md，自动打开
     static let defaults = NewFileSettings(
-        enabledTypes: ["txt", "md"],
-        autoOpen: true
+        enabledTypes: NewFileType.defaults.map(\.id),
+        autoOpen: false
     )
     
     // 兼容旧配置：缺少字段时用默认值。
     init(
-        enabledTypes: [String] = ["txt", "md"],
-        autoOpen: Bool = true
+        enabledTypes: [String] = NewFileType.defaults.map(\.id),
+        autoOpen: Bool = false
     ) {
-        self.enabledTypes = enabledTypes
+        let supported = Set(NewFileType.defaults.map(\.id))
+        self.enabledTypes = enabledTypes.filter { supported.contains($0) }
         self.autoOpen = autoOpen
     }
     
@@ -101,7 +101,9 @@ struct NewFileSettings: Codable {
     
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        enabledTypes = try c.decodeIfPresent([String].self, forKey: .enabledTypes) ?? ["txt", "md"]
-        autoOpen = try c.decodeIfPresent(Bool.self, forKey: .autoOpen) ?? true
+        let supported = Set(NewFileType.defaults.map(\.id))
+        let decodedTypes = try c.decodeIfPresent([String].self, forKey: .enabledTypes) ?? NewFileType.defaults.map(\.id)
+        enabledTypes = decodedTypes.filter { supported.contains($0) }
+        autoOpen = try c.decodeIfPresent(Bool.self, forKey: .autoOpen) ?? false
     }
 }

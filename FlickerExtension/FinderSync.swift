@@ -6,21 +6,38 @@
 //
 
 import Cocoa
+import Darwin
 import FinderSync
 
 @objc(FinderSync)
 final class FinderSync: FIFinderSync {
+    private let urlScheme = "codexrightclick"
 
     override init() {
         super.init()
-        // 监视根目录，使右键菜单可出现在任意位置。
-        FIFinderSyncController.default().directoryURLs = [URL(fileURLWithPath: "/")]
+        FIFinderSyncController.default().directoryURLs = Self.defaultWatchedDirectories()
+    }
+
+    private static func defaultWatchedDirectories() -> Set<URL> {
+        let fm = FileManager.default
+        let home = fm.homeDirectoryForCurrentUser
+        let urls: Set<URL> = [
+            home,
+            home.appendingPathComponent("Desktop", isDirectory: true),
+            home.appendingPathComponent("Documents", isDirectory: true),
+            home.appendingPathComponent("Downloads", isDirectory: true),
+            home.appendingPathComponent("Pictures", isDirectory: true),
+            home.appendingPathComponent("Movies", isDirectory: true),
+            home.appendingPathComponent("Music", isDirectory: true),
+            URL(fileURLWithPath: "/Volumes", isDirectory: true)
+        ]
+        return urls.filter { fm.fileExists(atPath: $0.path) }
     }
 
     // MARK: - Menu
 
     override func menu(for menuKind: FIMenuKind) -> NSMenu {
-        let menu = NSMenu(title: "Flicker")
+        let menu = NSMenu(title: "Codex RightClick")
         
         // 处理空白区域右键（容器菜单）
         if menuKind == .contextualMenuForContainer {
@@ -37,12 +54,12 @@ final class FinderSync: FIFinderSync {
         }
         let target = urls[0]
 
-        // Open With 子菜单
+        // Open in App 子菜单
         let entries = SharedStore.loadEntries()
         let matched = entries.filter { $0.matches(url: target) }
         if !matched.isEmpty {
-            let openItem = NSMenuItem(title: "打开方式", action: nil, keyEquivalent: "")
-            let submenu = NSMenu(title: "Open With")
+            let openItem = NSMenuItem(title: "进入应用", action: nil, keyEquivalent: "")
+            let submenu = NSMenu(title: "Open in App")
             for entry in matched {
                 let item = NSMenuItem(title: entry.name, action: #selector(openWithApp(_:)), keyEquivalent: "")
                 item.target = self
@@ -58,7 +75,7 @@ final class FinderSync: FIFinderSync {
         // 复制类菜单项（受菜单设置控制）
         let menuSettings = SharedStore.loadMenuSettings()
         if menuSettings.showCopyAbsolutePath {
-            menu.addItem(withTitle: "复制绝对路径", action: #selector(copyAbsolutePath(_:)), keyEquivalent: "")
+            menu.addItem(withTitle: "复制路径", action: #selector(copyAbsolutePath(_:)), keyEquivalent: "")
         }
         if menuSettings.showCopyRelativePath {
             menu.addItem(withTitle: "复制相对路径", action: #selector(copyRelativePath(_:)), keyEquivalent: "")
@@ -72,6 +89,8 @@ final class FinderSync: FIFinderSync {
         if let directory {
             addNewFileMenu(to: menu, directory: directory)
         }
+
+        menu.addItem(withTitle: "授权写入", action: #selector(grantWritePermission(_:)), keyEquivalent: "")
 
         return menu
     }
@@ -122,7 +141,7 @@ final class FinderSync: FIFinderSync {
         // 改为通过自定义 URL scheme 拉起非沙盒的容器 App，由其执行打开动作。
         // 多选时逐个发送 URL scheme，由容器 App 依次打开。
         for target in urls {
-            guard var comps = URLComponents(string: "flicker://open") else { continue }
+            guard var comps = URLComponents(string: "\(urlScheme)://open") else { continue }
             comps.queryItems = [
                 URLQueryItem(name: "target", value: target.path),
                 URLQueryItem(name: "app", value: entry.appPath)
@@ -203,7 +222,7 @@ final class FinderSync: FIFinderSync {
     /// 通过 URL Scheme 调用容器 App 创建文件
     private func proceedWithNewFile(type: String, path: String) {
         Log.debug("proceedWithNewFile: type=\(type), path=\(path)")
-        guard var comps = URLComponents(string: "flicker://newfile") else {
+        guard var comps = URLComponents(string: "\(urlScheme)://newfile") else {
             Log.error("proceedWithNewFile: failed to create URLComponents")
             return
         }
@@ -217,6 +236,22 @@ final class FinderSync: FIFinderSync {
         }
         Log.debug("proceedWithNewFile: opening URL: \(url)")
         NSWorkspace.shared.open(url)
+    }
+
+    @objc private func grantWritePermission(_ sender: NSMenuItem) {
+        guard let urls = FIFinderSyncController.default().selectedItemURLs(), !urls.isEmpty else { return }
+        for target in urls {
+            grantUserWritePermission(at: target)
+        }
+    }
+
+    private func grantUserWritePermission(at url: URL) {
+        let fm = FileManager.default
+        guard let attrs = try? fm.attributesOfItem(atPath: url.path),
+              let permissions = attrs[.posixPermissions] as? NSNumber else { return }
+        let current = permissions.intValue
+        let updated = current | 0o200
+        _ = chmod(url.path, mode_t(updated))
     }
 
     // MARK: - Helpers

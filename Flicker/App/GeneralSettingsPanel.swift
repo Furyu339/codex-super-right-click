@@ -22,22 +22,15 @@ struct GeneralSettingsPanel: View {
         Form {
             Section("界面") {
                 Toggle("在系统菜单栏显示图标", isOn: $settings.showMenuBarIcon)
-                    .help("关闭后将从菜单栏移除 Flicker 图标")
+                    .help("关闭后将从菜单栏移除 Codex RightClick 图标")
                 Toggle("在Dock栏显示", isOn: $settings.showInDock)
                     .help("关闭后应用将作为菜单栏/后台应用运行")
             }
             Section("启动") {
                 Toggle("开机时自动启动", isOn: $settings.launchAtLogin)
-                    .help("登录 macOS 时自动运行 Flicker")
+                    .help("登录 macOS 时自动运行 Codex RightClick")
             }
-            Section("更新") {
-                Toggle("启动时自动检查更新", isOn: $settings.autoCheckUpdates)
-                    .help("应用启动后静默检查 GitHub Releases 是否有新版本")
-                Button("立即检查更新…") {
-                    UpdateChecker.checkManually()
-                }
-            }
-            Section("关于 Flicker") {
+            Section("关于 Codex RightClick") {
                 HStack(spacing: 14) {
                     if let icon = NSApp.applicationIconImage {
                         Image(nsImage: icon)
@@ -46,7 +39,7 @@ struct GeneralSettingsPanel: View {
                             .frame(width: 48, height: 48)
                     }
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Flicker")
+                        Text("Codex RightClick")
                             .font(.headline)
                         Text("版本 \(appVersion) (\(buildNumber))")
                             .font(.subheadline)
@@ -59,16 +52,9 @@ struct GeneralSettingsPanel: View {
                     .font(.body)
                     .foregroundStyle(.secondary)
 
-                Link(destination: URL(string: "https://github.com/yananw-pub/Flicker")!) {
-                    Label("GitHub 仓库", systemImage: "link")
-                }
-                Link(destination: URL(string: "https://github.com/yananw-pub/Flicker/issues")!) {
-                    Label("反馈问题", systemImage: "exclamationmark.bubble")
-                }
-
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Copyright © 2026 wangyanan")
-                    Text("MIT License")
+                    Text("本地维护版")
+                    Text("Based on Flicker, MIT License")
                 }
                 .font(.caption)
                 .foregroundStyle(.tertiary)
@@ -76,8 +62,4 @@ struct GeneralSettingsPanel: View {
         }
         .formStyle(.grouped)
     }
-}
-
-#Preview {
-    GeneralSettingsPanel()
 }

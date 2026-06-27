@@ -16,7 +16,7 @@ struct FlickerApp: App {
     @Environment(\.openSettings) private var openSettingsEnv
 
     var body: some Scene {
-        Window("Flicker", id: Self.mainWindowID) {
+        Window("Codex RightClick", id: Self.mainWindowID) {
             ContentView()
                 .environmentObject(store)
                 .frame(minWidth: 560, minHeight: 420)

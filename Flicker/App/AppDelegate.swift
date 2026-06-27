@@ -34,11 +34,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             AppSettings.shared.applyLoginItem()
         } else {
             AppSettings.shared.applyAll()
-            // 延迟 3 秒后静默检查更新，不阻塞启动。
-            Task {
-                try? await Task.sleep(for: .seconds(3))
-                UpdateChecker.checkAndNotify()
-            }
         }
     }
 

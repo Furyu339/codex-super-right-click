@@ -2,7 +2,7 @@
 //  URLOpener.swift
 //  Flicker
 //
-//  Handles custom URL scheme `flicker://` invoked by the Finder extension.
+//  Handles custom URL scheme `codexrightclick://` invoked by the Finder extension.
 //
 //  背景：Finder Sync 扩展运行在沙箱内，直接调用
 //  `NSWorkspace.shared.open([target], withApplicationAt:)` 会被系统拦截，
@@ -13,9 +13,9 @@
 import AppKit
 
 enum URLOpener {
-    static let scheme = "flicker"
+    static let scheme = "codexrightclick"
 
-    /// 处理 `flicker://open?target=<路径>&app=<路径>` 和 `flicker://newfile?type=<类型>&path=<目录路径>`。
+    /// 处理 `codexrightclick://open`、`codexrightclick://newfile` 和 `codexrightclick://grant-write`。
     static func handle(_ url: URL) {
         Log.debug("URLOpener.handle called with url: \(url)")
         guard url.scheme?.lowercased() == scheme else {
@@ -40,7 +40,7 @@ enum URLOpener {
         }
     }
     
-    /// 处理 `flicker://open?target=<路径>&app=<路径>`。
+    /// 处理 `codexrightclick://open?target=<路径>&app=<路径>`。
     private static func handleOpen(_ comps: URLComponents) {
         let targetPath = comps.queryItems?.first(where: { $0.name == "target" })?.value?
             .removingPercentEncoding
@@ -63,7 +63,7 @@ enum URLOpener {
         hideApp()
     }
     
-    /// 处理 `flicker://newfile?type=<类型>&path=<目录路径>`。
+    /// 处理 `codexrightclick://newfile?type=<类型>&path=<目录路径>`。
     private static func handleNewFile(_ comps: URLComponents) {
         Log.debug("handleNewFile called")
         
@@ -99,6 +99,7 @@ enum URLOpener {
         
         hideApp()
     }
+
     
     /// 创建新文件，处理重名冲突。
     private static func createNewFile(fileType: NewFileType, directory: String) -> URL? {
@@ -130,17 +131,45 @@ enum URLOpener {
         
         Log.debug("final fileURL=\(fileURL.path)")
         
-        // 创建空文件
-        let success = FileManager.default.createFile(atPath: fileURL.path, contents: nil)
-        if success {
-            Log.debug("SUCCESS created file: \(fileURL.path)")
-            return fileURL
-        } else {
-            Log.error("FAILED to create file: \(fileURL.path)")
-            let dirWritable = FileManager.default.isWritableFile(atPath: directory)
-            Log.error("directory writable=\(dirWritable)")
-            return nil
+        if let templateURL = templateURL(for: fileType) {
+            do {
+                try FileManager.default.copyItem(at: templateURL, to: fileURL)
+                Log.debug("SUCCESS copied template: \(templateURL.path) -> \(fileURL.path)")
+                return fileURL
+            } catch {
+                Log.error("FAILED to copy template: \(error.localizedDescription)")
+            }
         }
+
+        let success = FileManager.default.createFile(atPath: fileURL.path, contents: nil)
+        if success { return fileURL }
+
+        Log.error("FAILED to create file: \(fileURL.path)")
+        let dirWritable = FileManager.default.isWritableFile(atPath: directory)
+        Log.error("directory writable=\(dirWritable)")
+        return nil
+    }
+
+    private static func templateURL(for fileType: NewFileType) -> URL? {
+        let templateName: String
+        switch fileType.ext {
+        case "docx": templateName = "Word.docx"
+        case "xlsx": templateName = "Excel.xlsx"
+        case "pptx": templateName = "PPT.pptx"
+        default: return nil
+        }
+
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let candidates = [
+            home
+                .appendingPathComponent("Library/Application Support/CodexRightClick/Templates/CreateNewFile")
+                .appendingPathComponent(templateName),
+            home
+                .appendingPathComponent("Library/Group Containers/4K6FWZU8C4.group.cn.better365.iRightMouse/Templates/CreateNewFile")
+                .appendingPathComponent(templateName)
+        ]
+
+        return candidates.first { FileManager.default.fileExists(atPath: $0.path) }
     }
     
     /// 隐藏应用，避免主窗口抢占焦点。

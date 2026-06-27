@@ -4,13 +4,11 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
-	<key>com.apple.security.app-groups</key>
-	<array>
-		<string>group.com.wangyanan.flicker</string>
-	</array>
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
 	<key>com.apple.security.temporary-exception.files.absolute-path.read-only</key>
 	<array>
-		<string>/Users/wangyanan/Library/Application Support/Flicker/</string>
+		<string>/Users/furyu/Library/Application Support/CodexRightClick/</string>
 	</array>
 </dict>
 </plist>

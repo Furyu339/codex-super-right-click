@@ -18,7 +18,6 @@ final class AppSettings: ObservableObject {
         static let menuBar = "showMenuBarIcon"
         static let dock = "showInDock"
         static let login = "launchAtLogin"
-        static let autoUpdate = "autoCheckUpdates"
     }
 
     private func persistMenuSettings() {
@@ -59,13 +58,6 @@ final class AppSettings: ObservableObject {
             applyLoginItem()
         }
     }
-    /// 启动时自动检查更新。
-    @Published var autoCheckUpdates: Bool = true {
-        didSet {
-            defaults.set(autoCheckUpdates, forKey: Key.autoUpdate)
-        }
-    }
-
     // MARK: - 右键菜单开关（通过 SharedStore 与扩展共享）
 
     /// 显示「复制绝对路径」。
@@ -73,22 +65,22 @@ final class AppSettings: ObservableObject {
         didSet { persistMenuSettings() }
     }
     /// 显示「复制相对路径」。
-    @Published var showCopyRelativePath: Bool = true {
+    @Published var showCopyRelativePath: Bool = false {
         didSet { persistMenuSettings() }
     }
     /// 显示「复制文件名」。
-    @Published var showCopyFileName: Bool = true {
+    @Published var showCopyFileName: Bool = false {
         didSet { persistMenuSettings() }
     }
     
     // MARK: - 新建文件设置（通过 SharedStore 与扩展共享）
     
     /// 启用的文件类型ID列表。
-    @Published var newFileEnabledTypes: [String] = ["txt", "md"] {
+    @Published var newFileEnabledTypes: [String] = NewFileType.defaults.map(\.id) {
         didSet { persistNewFileSettings() }
     }
     /// 创建后自动打开。
-    @Published var newFileAutoOpen: Bool = true {
+    @Published var newFileAutoOpen: Bool = false {
         didSet { persistNewFileSettings() }
     }
 
@@ -96,7 +88,6 @@ final class AppSettings: ObservableObject {
         showMenuBarIcon = (defaults.object(forKey: Key.menuBar) as? Bool) ?? true
         showInDock = (defaults.object(forKey: Key.dock) as? Bool) ?? true
         launchAtLogin = (defaults.object(forKey: Key.login) as? Bool) ?? false
-        autoCheckUpdates = (defaults.object(forKey: Key.autoUpdate) as? Bool) ?? true
 
         let menuSettings = SharedStore.loadMenuSettings()
         showCopyAbsolutePath = menuSettings.showCopyAbsolutePath
@@ -132,7 +123,7 @@ final class AppSettings: ObservableObject {
                 if service.status == .enabled { try service.unregister() }
             }
         } catch {
-            NSLog("[Flicker] login item toggle failed: \(error.localizedDescription)")
+            NSLog("[CodexRightClick] login item toggle failed: \(error.localizedDescription)")
         }
     }
 }

@@ -1,7 +1,9 @@
 # Xcode
 build/
+build-manual/
 dist/
 DerivedData/
+test-actions/
 *.xcuserdata
 *.xcworkspace/xcuserdata/
 *.xcworkspace/xcshareddata/swiftpm/

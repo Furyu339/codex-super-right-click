@@ -32,8 +32,3 @@ struct ContentView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
-
-#Preview {
-    ContentView()
-        .environmentObject(AppEntryStore())
-}

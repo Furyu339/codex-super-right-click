@@ -43,7 +43,3 @@ struct ActionControlPanel: View {
         .formStyle(.grouped)
     }
 }
-
-#Preview {
-    ActionControlPanel()
-}

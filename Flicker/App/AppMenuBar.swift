@@ -24,7 +24,7 @@ final class AppMenuBar {
                     button.image = icon
                 } else {
                     let symbol = NSImage(systemSymbolName: "contextualmenu.and.cursorarrow",
-                                         accessibilityDescription: "Flicker")
+                                         accessibilityDescription: "Codex RightClick")
                     symbol?.isTemplate = true
                     button.image = symbol
                 }
@@ -52,12 +52,7 @@ final class AppMenuBar {
 
         menu.addItem(.separator())
 
-        let updateItem = menu.addItem(withTitle: "检查更新…", action: #selector(checkForUpdates), keyEquivalent: "")
-        updateItem.target = self
-
-        menu.addItem(.separator())
-
-        let quitItem = menu.addItem(withTitle: "退出 Flicker", action: #selector(quit), keyEquivalent: "q")
+        let quitItem = menu.addItem(withTitle: "退出 Codex RightClick", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
 
         return menu
@@ -70,10 +65,6 @@ final class AppMenuBar {
 
     @objc private func openSettings() {
         AppActions.shared.openSettings?()
-    }
-
-    @objc private func checkForUpdates() {
-        UpdateChecker.checkManually()
     }
 
     @objc private func quit() {

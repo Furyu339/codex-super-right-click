@@ -10,7 +10,7 @@ import Foundation
 import os
 
 /// 配置读写。App 与扩展共享一个固定路径文件。
-/// 路径：~/Library/Application Support/Flicker/app_entries.json
+/// 路径：~/Library/Application Support/CodexRightClick/app_entries.json
 ///
 /// 关键点：沙盒扩展里 `urls(for: .applicationSupportDirectory)` 与
 /// `homeDirectoryForCurrentUser` 都返回沙盒容器路径而非真实主目录。
@@ -19,8 +19,8 @@ enum SharedStore {
     static let configFileName = "app_entries.json"
     static let menuSettingsFileName = "menu_settings.json"
     static let newFileSettingsFileName = "new_file_settings.json"
-    static let appSupportSubdir = "Flicker"
-    private static let logger = Logger(subsystem: "com.wangyanan.flicker", category: "SharedStore")
+    static let appSupportSubdir = "CodexRightClick"
+    private static let logger = Logger(subsystem: "local.codex.rightclick", category: "SharedStore")
 
     /// 真实用户主目录（不受沙盒容器重定向影响）。
     private static var realHomeDirectory: URL? {
@@ -60,9 +60,10 @@ enum SharedStore {
     /// 读取应用列表。
     static func loadEntries() -> [AppEntry] {
         guard let url = configFileURL,
-              let data = try? Data(contentsOf: url) else { return [] }
+              let data = try? Data(contentsOf: url) else { return AppEntry.codexDefaults }
         do {
-            return try JSONDecoder().decode([AppEntry].self, from: data)
+            let decoded = try JSONDecoder().decode([AppEntry].self, from: data)
+            return decoded.isEmpty ? AppEntry.codexDefaults : decoded
         } catch {
             logger.error("loadEntries decode failed: \(error.localizedDescription, privacy: .public)")
             return []

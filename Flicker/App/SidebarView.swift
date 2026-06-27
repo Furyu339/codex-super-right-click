@@ -77,8 +77,3 @@ private struct SidebarItem: View {
         .padding(.vertical, 2)
     }
 }
-
-#Preview {
-    SidebarView(selectedItem: .constant(.openWith))
-        .frame(height: 300)
-}

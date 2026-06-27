@@ -34,7 +34,3 @@ struct SettingsView: View {
         .navigationTitle("设置")
     }
 }
-
-#Preview {
-    SettingsView()
-}

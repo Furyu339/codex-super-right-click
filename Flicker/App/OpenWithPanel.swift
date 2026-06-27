@@ -38,9 +38,9 @@ struct OpenWithPanel: View {
         Group {
             if store.entries.isEmpty {
                 ContentUnavailableView {
-                    Label("暂无配置", systemImage: "square.dashed")
-                } description: {
-                    Text("点击下方 + 添加要用右键打开文件的应用")
+                Label("暂无应用入口", systemImage: "square.dashed")
+            } description: {
+                    Text("默认会提供 Cursor、GitHub Desktop、Ghostty 和 Codex")
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -68,7 +68,7 @@ struct OpenWithPanel: View {
             } label: {
                 Label("启用 Finder 扩展…", systemImage: "puzzlepiece.extension")
             }
-            .help("打开系统设置中的「访达扩展」开关，勾选 Flicker")
+            .help("打开系统设置中的「访达扩展」开关，勾选 Codex RightClick")
 
             Spacer()
 
@@ -137,9 +137,4 @@ private struct AppEntryRow: View {
         .font(.caption2)
         .foregroundStyle(.tertiary)
     }
-}
-
-#Preview {
-    OpenWithPanel()
-        .environmentObject(AppEntryStore())
 }
