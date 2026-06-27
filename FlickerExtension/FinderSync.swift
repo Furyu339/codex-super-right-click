@@ -149,8 +149,8 @@ final class FinderSync: FIFinderSync {
     }
 
     private static func newFileMenuIcon(for fileType: NewFileType) -> NSImage? {
-        if let officeIconName = officeIconName(for: fileType.ext),
-           let resourceURL = Bundle.main.url(forResource: officeIconName, withExtension: "icns"),
+        if let appIconName = appIconName(for: fileType.ext),
+           let resourceURL = Bundle.main.url(forResource: appIconName, withExtension: "icns"),
            let icon = NSImage(contentsOf: resourceURL) {
             icon.size = NSSize(width: 16, height: 16)
             return icon
@@ -161,8 +161,9 @@ final class FinderSync: FIFinderSync {
         return icon
     }
 
-    private static func officeIconName(for fileExtension: String) -> String? {
+    private static func appIconName(for fileExtension: String) -> String? {
         switch fileExtension.lowercased() {
+        case "txt": return "TextEdit"
         case "docx": return "OfficeWord"
         case "xlsx": return "OfficeExcel"
         case "pptx": return "OfficePowerPoint"

@@ -52,7 +52,7 @@ final class AppSettings: ObservableObject {
         }
     }
     /// 开机时自动启动。
-    @Published var launchAtLogin: Bool = false {
+    @Published var launchAtLogin: Bool = true {
         didSet {
             defaults.set(launchAtLogin, forKey: Key.login)
             applyLoginItem()
@@ -87,7 +87,7 @@ final class AppSettings: ObservableObject {
     init() {
         showMenuBarIcon = (defaults.object(forKey: Key.menuBar) as? Bool) ?? true
         showInDock = (defaults.object(forKey: Key.dock) as? Bool) ?? true
-        launchAtLogin = (defaults.object(forKey: Key.login) as? Bool) ?? false
+        launchAtLogin = (defaults.object(forKey: Key.login) as? Bool) ?? true
 
         let menuSettings = SharedStore.loadMenuSettings()
         showCopyAbsolutePath = menuSettings.showCopyAbsolutePath
