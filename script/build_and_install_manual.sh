@@ -85,7 +85,7 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
     </dict>
   </array>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
-  <key>LSUIElement</key><false/>
+  <key>LSUIElement</key><true/>
   <key>NSPrincipalClass</key><string>NSApplication</string>
   <key>NSSupportsAutomaticGraphicsSwitching</key><true/>
 </dict>

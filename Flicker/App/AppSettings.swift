@@ -45,7 +45,7 @@ final class AppSettings: ObservableObject {
         }
     }
     /// 在程序坞中显示应用。
-    @Published var showInDock: Bool = true {
+    @Published var showInDock: Bool = false {
         didSet {
             defaults.set(showInDock, forKey: Key.dock)
             applyDock()
@@ -86,7 +86,7 @@ final class AppSettings: ObservableObject {
 
     init() {
         showMenuBarIcon = (defaults.object(forKey: Key.menuBar) as? Bool) ?? true
-        showInDock = (defaults.object(forKey: Key.dock) as? Bool) ?? true
+        showInDock = (defaults.object(forKey: Key.dock) as? Bool) ?? false
         launchAtLogin = (defaults.object(forKey: Key.login) as? Bool) ?? true
 
         let menuSettings = SharedStore.loadMenuSettings()
