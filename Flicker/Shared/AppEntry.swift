@@ -82,12 +82,6 @@ extension AppEntry {
             name: "Open in Ghostty",
             appPath: "/Applications/Ghostty.app",
             foldersOnly: true
-        ),
-        AppEntry(
-            id: "codex",
-            name: "Open in Codex",
-            appPath: "/Applications/Codex.app",
-            foldersOnly: false
         )
     ]
 }

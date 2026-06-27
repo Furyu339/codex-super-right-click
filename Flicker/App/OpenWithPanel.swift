@@ -40,7 +40,7 @@ struct OpenWithPanel: View {
                 ContentUnavailableView {
                 Label("暂无应用入口", systemImage: "square.dashed")
             } description: {
-                    Text("默认会提供 Cursor、GitHub Desktop、Ghostty 和 Codex")
+                    Text("默认会提供 Cursor、GitHub Desktop 和 Ghostty")
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
