@@ -40,12 +40,12 @@ final class FinderSync: FIFinderSync {
             if let targetURL = FIFinderSyncController.default().targetedURL() {
                 addNewFileMenu(to: menu, directory: targetURL.path)
             }
-            return wrapMenu(menu)
+            return menu
         }
 
         guard menuKind == .contextualMenuForItems || menuKind == .contextualMenuForSidebar,
               let urls = FIFinderSyncController.default().selectedItemURLs(), !urls.isEmpty else {
-            return wrapMenu(menu)
+            return menu
         }
         let target = urls[0]
 
@@ -87,18 +87,8 @@ final class FinderSync: FIFinderSync {
 
         menu.addItem(withTitle: "授权写入", action: #selector(grantWritePermission(_:)), keyEquivalent: "")
 
-        return wrapMenu(menu)
-    }
-
-    private func wrapMenu(_ submenu: NSMenu) -> NSMenu {
-        Self.debugLog("return menu items=\(submenu.items.map(\.title).joined(separator: ","))")
-        let root = NSMenu(title: "Codex RightClick")
-        guard !submenu.items.isEmpty else { return root }
-        let item = NSMenuItem(title: "Codex RightClick", action: nil, keyEquivalent: "")
-        item.image = NSImage(systemSymbolName: "contextualmenu.and.cursorarrow", accessibilityDescription: nil)
-        item.submenu = submenu
-        root.addItem(item)
-        return root
+        Self.debugLog("return menu items=\(menu.items.map(\.title).joined(separator: ","))")
+        return menu
     }
 
     private static func debugLog(_ message: String) {
