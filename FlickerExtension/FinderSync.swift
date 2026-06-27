@@ -26,11 +26,18 @@ final class FinderSync: FIFinderSync {
 
     private static func defaultWatchedDirectories() -> Set<URL> {
         let fm = FileManager.default
-        let urls: Set<URL> = [
-            URL(fileURLWithPath: "/Users", isDirectory: true),
+        var urls: Set<URL> = [
             URL(fileURLWithPath: "/Volumes", isDirectory: true)
         ]
+        if let homeDirectory = realHomeDirectory() {
+            urls.insert(homeDirectory)
+        }
         return urls.filter { fm.fileExists(atPath: $0.path) }
+    }
+
+    private static func realHomeDirectory() -> URL? {
+        guard let pw = getpwuid(getuid()) else { return nil }
+        return URL(fileURLWithFileSystemRepresentation: pw.pointee.pw_dir, isDirectory: true, relativeTo: nil)
     }
 
     // MARK: - Menu
