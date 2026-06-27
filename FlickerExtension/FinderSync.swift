@@ -57,7 +57,6 @@ final class FinderSync: FIFinderSync {
         if urls.contains(where: Self.isArchiveURL) {
             let item = NSMenuItem(title: "解压到单独文件夹", action: #selector(extractToSeparateFolder(_:)), keyEquivalent: "")
             item.target = self
-            item.image = NSImage(systemSymbolName: "archivebox", accessibilityDescription: nil)
             menu.addItem(item)
         }
 
@@ -140,13 +139,35 @@ final class FinderSync: FIFinderSync {
             )
             item.target = self
             item.toolTip = "\(fileType.id)|\(directory)"
-            if let icon = NSImage(systemSymbolName: fileType.icon, accessibilityDescription: nil) {
+            if let icon = Self.newFileMenuIcon(for: fileType) {
                 item.image = icon
             }
             newFileSubmenu.addItem(item)
         }
         newFileItem.submenu = newFileSubmenu
         menu.addItem(newFileItem)
+    }
+
+    private static func newFileMenuIcon(for fileType: NewFileType) -> NSImage? {
+        if let officeIconName = officeIconName(for: fileType.ext),
+           let resourceURL = Bundle.main.url(forResource: officeIconName, withExtension: "icns"),
+           let icon = NSImage(contentsOf: resourceURL) {
+            icon.size = NSSize(width: 16, height: 16)
+            return icon
+        }
+
+        let icon = NSImage(systemSymbolName: fileType.icon, accessibilityDescription: nil)
+        icon?.size = NSSize(width: 16, height: 16)
+        return icon
+    }
+
+    private static func officeIconName(for fileExtension: String) -> String? {
+        switch fileExtension.lowercased() {
+        case "docx": return "OfficeWord"
+        case "xlsx": return "OfficeExcel"
+        case "pptx": return "OfficePowerPoint"
+        default: return nil
+        }
     }
     
     /// 获取目标目录路径（如果是文件夹则返回其路径，否则返回文件所在目录）。

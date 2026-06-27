@@ -12,7 +12,7 @@ pkill -f "CodexRightClick" 2>/dev/null || true
 pkill -f "CodexRightClickExtension" 2>/dev/null || true
 
 rm -rf "$APP"
-mkdir -p "$BUILD" "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/PlugIns" "$APPEX/Contents/MacOS"
+mkdir -p "$BUILD" "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/PlugIns" "$APPEX/Contents/MacOS" "$APPEX/Contents/Resources"
 
 cat > "$BUILD/main.swift" <<'SWIFT'
 import Foundation
@@ -121,6 +121,8 @@ cat > "$APPEX/Contents/Info.plist" <<'PLIST'
 PLIST
 
 cp "$ROOT/Flicker/Resources/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
+cp "$ROOT"/Flicker/Resources/OfficeIcons/*.icns "$APP/Contents/Resources/"
+cp "$ROOT"/Flicker/Resources/OfficeIcons/*.icns "$APPEX/Contents/Resources/"
 if [[ -x /opt/homebrew/bin/7zz ]]; then
   cp /opt/homebrew/bin/7zz "$APP/Contents/Resources/7zz"
   chmod +x "$APP/Contents/Resources/7zz"
