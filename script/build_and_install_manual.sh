@@ -121,6 +121,10 @@ cat > "$APPEX/Contents/Info.plist" <<'PLIST'
 PLIST
 
 cp "$ROOT/Flicker/Resources/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
+if [[ -x /opt/homebrew/bin/7zz ]]; then
+  cp /opt/homebrew/bin/7zz "$APP/Contents/Resources/7zz"
+  chmod +x "$APP/Contents/Resources/7zz"
+fi
 
 /usr/bin/codesign --force --sign - --entitlements "$ROOT/FlickerExtension/FlickerExtension.entitlements" "$APPEX"
 /usr/bin/codesign --force --sign - --entitlements "$ROOT/Flicker/Resources/Flicker.entitlements" "$APP"

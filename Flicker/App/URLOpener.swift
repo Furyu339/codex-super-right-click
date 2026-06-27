@@ -15,7 +15,7 @@ import AppKit
 enum URLOpener {
     static let scheme = "codexrightclick"
 
-    /// 处理 `codexrightclick://open`、`codexrightclick://newfile` 和 `codexrightclick://grant-write`。
+    /// 处理 `codexrightclick://open`、`codexrightclick://newfile` 和 `codexrightclick://extract`。
     static func handle(_ url: URL) {
         Log.debug("URLOpener.handle called with url: \(url)")
         guard url.scheme?.lowercased() == scheme else {
@@ -34,6 +34,8 @@ enum URLOpener {
             handleOpen(comps)
         case "newfile":
             handleNewFile(comps)
+        case "extract":
+            handleExtract(comps)
         default:
             Log.debug("unknown host: \(comps.host ?? "nil")")
             return
@@ -106,7 +108,8 @@ enum URLOpener {
         Log.debug("createNewFile: directory=\(directory), ext=\(fileType.ext)")
         
         let baseURL = URL(fileURLWithPath: directory)
-        var fileName = "新建文件.\(fileType.ext)"
+        let baseName = windowsStyleBaseName(for: fileType)
+        var fileName = "\(baseName).\(fileType.ext)"
         var fileURL = baseURL.appendingPathComponent(fileName)
         
         Log.debug("initial fileURL=\(fileURL.path)")
@@ -122,9 +125,9 @@ enum URLOpener {
         }
         
         // 处理重名：添加数字后缀
-        var counter = 1
+        var counter = 2
         while FileManager.default.fileExists(atPath: fileURL.path) {
-            fileName = "新建文件 \(counter).\(fileType.ext)"
+            fileName = "\(baseName) (\(counter)).\(fileType.ext)"
             fileURL = baseURL.appendingPathComponent(fileName)
             counter += 1
         }
@@ -147,6 +150,151 @@ enum URLOpener {
         Log.error("FAILED to create file: \(fileURL.path)")
         let dirWritable = FileManager.default.isWritableFile(atPath: directory)
         Log.error("directory writable=\(dirWritable)")
+        return nil
+    }
+
+    private static func windowsStyleBaseName(for fileType: NewFileType) -> String {
+        switch fileType.ext {
+        case "txt": return "新建 文本文档"
+        case "md": return "新建 Markdown 文件"
+        case "docx": return "新建 Microsoft Word 文档"
+        case "xlsx": return "新建 Microsoft Excel 工作表"
+        case "pptx": return "新建 Microsoft PowerPoint 演示文稿"
+        default: return "新建文件"
+        }
+    }
+
+    /// 处理 `codexrightclick://extract?archive=<压缩包路径>`。
+    private static func handleExtract(_ comps: URLComponents) {
+        let archives = comps.queryItems?
+            .filter { $0.name == "archive" }
+            .compactMap(\.value)
+            .map { URL(fileURLWithPath: $0) } ?? []
+
+        guard !archives.isEmpty else {
+            Log.error("extract: missing archive")
+            return
+        }
+
+        for archive in archives {
+            extractArchive(archive)
+        }
+        hideApp()
+    }
+
+    private static func extractArchive(_ archive: URL) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            guard FileManager.default.fileExists(atPath: archive.path) else {
+                Log.error("extract: archive does not exist: \(archive.path)")
+                return
+            }
+            guard let sevenZipURL = sevenZipExecutableURL() else {
+                Log.error("extract: missing 7zz executable")
+                return
+            }
+
+            let destination = uniqueExtractionDirectory(for: archive)
+            do {
+                try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+            } catch {
+                Log.error("extract: create folder failed: \(error.localizedDescription)")
+                return
+            }
+
+            let exitCode = runSevenZip(sevenZipURL, archive: archive, destination: destination)
+            guard exitCode == 0 else {
+                Log.error("extract failed: exit=\(exitCode), archive=\(archive.path)")
+                return
+            }
+
+            expandSingleTarIfNeeded(in: destination, using: sevenZipURL)
+            Log.debug("extract finished: \(archive.path) -> \(destination.path)")
+        }
+    }
+
+    @discardableResult
+    private static func runSevenZip(_ sevenZipURL: URL, archive: URL, destination: URL) -> Int32 {
+        let process = Process()
+        process.executableURL = sevenZipURL
+        process.currentDirectoryURL = destination
+        process.arguments = [
+            "x",
+            "-y",
+            "-aou",
+            "-o\(destination.path)",
+            archive.path
+        ]
+        process.environment = [
+            "LANG": "zh_CN.UTF-8",
+            "LC_ALL": "zh_CN.UTF-8"
+        ]
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+            return process.terminationStatus
+        } catch {
+            Log.error("extract launch failed: \(error.localizedDescription)")
+            return -1
+        }
+    }
+
+    private static func expandSingleTarIfNeeded(in destination: URL, using sevenZipURL: URL) {
+        do {
+            let children = try FileManager.default.contentsOfDirectory(
+                at: destination,
+                includingPropertiesForKeys: [.isRegularFileKey],
+                options: [.skipsHiddenFiles]
+            )
+            let tarFiles = children.filter { url in
+                url.pathExtension.lowercased() == "tar"
+                    && ((try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) ?? false)
+            }
+            guard children.count == 1, let tarURL = tarFiles.first else { return }
+
+            let exitCode = runSevenZip(sevenZipURL, archive: tarURL, destination: destination)
+            if exitCode == 0 {
+                try? FileManager.default.removeItem(at: tarURL)
+            } else {
+                Log.error("extract inner tar failed: exit=\(exitCode), tar=\(tarURL.path)")
+            }
+        } catch {
+            Log.error("extract inner tar check failed: \(error.localizedDescription)")
+        }
+    }
+
+    private static func uniqueExtractionDirectory(for archive: URL) -> URL {
+        let parent = archive.deletingLastPathComponent()
+        let baseName = archiveBaseName(archive)
+        var candidate = parent.appendingPathComponent(baseName, isDirectory: true)
+        var counter = 2
+        while FileManager.default.fileExists(atPath: candidate.path) {
+            candidate = parent.appendingPathComponent("\(baseName) (\(counter))", isDirectory: true)
+            counter += 1
+        }
+        return candidate
+    }
+
+    private static func archiveBaseName(_ archive: URL) -> String {
+        let fileName = archive.lastPathComponent
+        let lower = fileName.lowercased()
+        for suffix in [".tar.gz", ".tar.bz2", ".tar.xz", ".tar.zst", ".tar.lzma", ".tbz2", ".tbz", ".tgz", ".txz", ".tzst"] {
+            if lower.hasSuffix(suffix) {
+                return String(fileName.dropLast(suffix.count))
+            }
+        }
+        return archive.deletingPathExtension().lastPathComponent
+    }
+
+    private static func sevenZipExecutableURL() -> URL? {
+        let bundled = Bundle.main.resourceURL?.appendingPathComponent("7zz")
+        if let bundled, FileManager.default.isExecutableFile(atPath: bundled.path) {
+            return bundled
+        }
+        let homebrew = URL(fileURLWithPath: "/opt/homebrew/bin/7zz")
+        if FileManager.default.isExecutableFile(atPath: homebrew.path) {
+            return homebrew
+        }
         return nil
     }
 

@@ -67,19 +67,19 @@ extension AppEntry {
     static let codexDefaults: [AppEntry] = [
         AppEntry(
             id: "cursor",
-            name: "Open in Cursor",
+            name: "在 Cursor 中打开",
             appPath: "/Applications/Cursor.app",
             foldersOnly: false
         ),
         AppEntry(
             id: "github-desktop",
-            name: "Open in GitHub Desktop",
+            name: "在 GitHub Desktop 中打开",
             appPath: "/Applications/GitHub Desktop.app",
             foldersOnly: false
         ),
         AppEntry(
             id: "ghostty",
-            name: "Open in Ghostty",
+            name: "在 Ghostty 中打开",
             appPath: "/Applications/Ghostty.app",
             foldersOnly: true
         )

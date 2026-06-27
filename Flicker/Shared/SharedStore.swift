@@ -63,10 +63,29 @@ enum SharedStore {
               let data = try? Data(contentsOf: url) else { return AppEntry.codexDefaults }
         do {
             let decoded = try JSONDecoder().decode([AppEntry].self, from: data)
-            return decoded.isEmpty ? AppEntry.codexDefaults : decoded
+            return decoded.isEmpty ? AppEntry.codexDefaults : migrateDefaultEntryNames(decoded)
         } catch {
             logger.error("loadEntries decode failed: \(error.localizedDescription, privacy: .public)")
             return []
+        }
+    }
+
+    private static func migrateDefaultEntryNames(_ entries: [AppEntry]) -> [AppEntry] {
+        let currentDefaults = Dictionary(uniqueKeysWithValues: AppEntry.codexDefaults.map { ($0.id, $0) })
+        let oldNames: [String: Set<String>] = [
+            "cursor": ["Cursor", "Open in Cursor"],
+            "github-desktop": ["GitHub Desktop", "Open in GitHub Desktop"],
+            "ghostty": ["Ghostty", "Open in Ghostty"]
+        ]
+
+        return entries.map { entry in
+            guard let current = currentDefaults[entry.id],
+                  oldNames[entry.id]?.contains(entry.name) == true else {
+                return entry
+            }
+            var migrated = entry
+            migrated.name = current.name
+            return migrated
         }
     }
 

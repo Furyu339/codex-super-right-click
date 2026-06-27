@@ -11,6 +11,11 @@ import FinderSync
 
 final class FinderSync: FIFinderSync {
     private let urlScheme = "codexrightclick"
+    private static let archiveExtensions: Set<String> = [
+        "7z", "zip", "zipx", "rar", "r00", "001",
+        "tar", "gz", "tgz", "bz2", "tbz", "tbz2", "xz", "txz", "zst", "tzst",
+        "lzma", "cab", "arj", "lzh", "lha", "iso", "dmg", "xar", "pkg", "jar"
+    ]
 
     override init() {
         super.init()
@@ -49,11 +54,18 @@ final class FinderSync: FIFinderSync {
         }
         let target = urls[0]
 
+        if urls.contains(where: Self.isArchiveURL) {
+            let item = NSMenuItem(title: "解压到单独文件夹", action: #selector(extractToSeparateFolder(_:)), keyEquivalent: "")
+            item.target = self
+            item.image = NSImage(systemSymbolName: "archivebox", accessibilityDescription: nil)
+            menu.addItem(item)
+        }
+
         // Open in App 子菜单
         let entries = SharedStore.loadEntries()
         let matched = entries.filter { $0.matches(url: target) }
         if !matched.isEmpty {
-            let openItem = NSMenuItem(title: "进入应用", action: nil, keyEquivalent: "")
+            let openItem = NSMenuItem(title: "在应用中打开", action: nil, keyEquivalent: "")
             let submenu = NSMenu(title: "Open in App")
             for entry in matched {
                 let item = NSMenuItem(title: entry.name, action: #selector(openWithApp(_:)), keyEquivalent: "")
@@ -106,6 +118,10 @@ final class FinderSync: FIFinderSync {
         } else {
             try? data.write(to: url)
         }
+    }
+
+    private static func isArchiveURL(_ url: URL) -> Bool {
+        archiveExtensions.contains(url.pathExtension.lowercased())
     }
     
     /// 添加新建文件子菜单到指定菜单。
@@ -162,6 +178,15 @@ final class FinderSync: FIFinderSync {
             guard let url = comps.url else { continue }
             NSWorkspace.shared.open(url)
         }
+    }
+
+    @objc private func extractToSeparateFolder(_ sender: NSMenuItem) {
+        guard let urls = FIFinderSyncController.default().selectedItemURLs(), !urls.isEmpty else { return }
+        let archives = urls.filter(Self.isArchiveURL)
+        guard !archives.isEmpty, var comps = URLComponents(string: "\(urlScheme)://extract") else { return }
+        comps.queryItems = archives.map { URLQueryItem(name: "archive", value: $0.path) }
+        guard let url = comps.url else { return }
+        NSWorkspace.shared.open(url)
     }
 
     @objc private func copyAbsolutePath(_ sender: NSMenuItem) {
