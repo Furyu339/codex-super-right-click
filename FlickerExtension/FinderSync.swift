@@ -11,6 +11,9 @@ import FinderSync
 
 final class FinderSync: FIFinderSync {
     private let urlScheme = "codexrightclick"
+    private static let menuIconSize = NSSize(width: 16, height: 16)
+    private static var appIconCache: [String: NSImage] = [:]
+    private static var newFileIconCache: [String: NSImage] = [:]
     private static let archiveExtensions: Set<String> = [
         "7z", "zip", "zipx", "rar", "r00", "001",
         "tar", "gz", "tgz", "bz2", "tbz", "tbz2", "xz", "txz", "zst", "tzst",
@@ -81,8 +84,7 @@ final class FinderSync: FIFinderSync {
                 let item = NSMenuItem(title: entry.name, action: #selector(openWithApp(_:)), keyEquivalent: "")
                 item.target = self
                 item.tag = entry.id.hashValue
-                item.image = NSWorkspace.shared.icon(forFile: entry.appPath)
-                item.image?.size = NSSize(width: 16, height: 16)
+                item.image = Self.appMenuIcon(for: entry.appPath)
                 submenu.addItem(item)
             }
             openItem.submenu = submenu
@@ -114,6 +116,7 @@ final class FinderSync: FIFinderSync {
     }
 
     private static func debugLog(_ message: String) {
+        #if DEBUG
         let line = "[\(Date())] \(message)\n"
         let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
@@ -128,6 +131,7 @@ final class FinderSync: FIFinderSync {
         } else {
             try? data.write(to: url)
         }
+        #endif
     }
 
     private static func isArchiveURL(_ url: URL) -> Bool {
@@ -166,17 +170,43 @@ final class FinderSync: FIFinderSync {
         menu.addItem(newFileItem)
     }
 
-    private static func newFileMenuIcon(for fileType: NewFileType) -> NSImage? {
-        if let appIconName = appIconName(for: fileType.ext),
-           let resourceURL = Bundle.main.url(forResource: appIconName, withExtension: "icns"),
-           let icon = NSImage(contentsOf: resourceURL) {
-            icon.size = NSSize(width: 16, height: 16)
-            return icon
+    private static func appMenuIcon(for appPath: String) -> NSImage? {
+        if let cached = appIconCache[appPath] {
+            return menuSizedCopy(of: cached)
         }
 
-        let icon = NSImage(systemSymbolName: fileType.icon, accessibilityDescription: nil)
-        icon?.size = NSSize(width: 16, height: 16)
-        return icon
+        let icon = NSWorkspace.shared.icon(forFile: appPath)
+        icon.size = menuIconSize
+        appIconCache[appPath] = icon
+        return menuSizedCopy(of: icon)
+    }
+
+    private static func newFileMenuIcon(for fileType: NewFileType) -> NSImage? {
+        if let cached = newFileIconCache[fileType.id] {
+            return menuSizedCopy(of: cached)
+        }
+
+        let icon: NSImage?
+        if let appIconName = appIconName(for: fileType.ext),
+           let resourceURL = Bundle.main.url(forResource: appIconName, withExtension: "icns"),
+           let resourceIcon = NSImage(contentsOf: resourceURL) {
+            icon = resourceIcon
+        } else {
+            icon = NSImage(systemSymbolName: fileType.icon, accessibilityDescription: nil)
+        }
+
+        icon?.size = menuIconSize
+        if let icon {
+            newFileIconCache[fileType.id] = icon
+            return menuSizedCopy(of: icon)
+        }
+        return nil
+    }
+
+    private static func menuSizedCopy(of image: NSImage) -> NSImage? {
+        guard let copy = image.copy() as? NSImage else { return image }
+        copy.size = menuIconSize
+        return copy
     }
 
     private static func appIconName(for fileExtension: String) -> String? {
